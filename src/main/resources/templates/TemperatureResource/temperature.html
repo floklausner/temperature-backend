@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {!<script src="/webjars/d3js/6.6.0/d3.min.js"></script>!}
+    {!<script src="https://d3js.org/d3.v7.min.js"></script>!}
+    <title>Temp</title>
+</head>
+<body>
+
+<form action="/api/temperature" method="post" style="font: 10px sans-serif; color: steelblue;">
+    <label for="month">Choose a Month:</label>
+    <select name="month" id="month" >
+        <option value="JANUARY">January</option>
+        <option value="FEBRUARY">February</option>
+        <option value="MARCH" selected>March</option>
+        <option value="APRIL">April</option>
+        <option value="MAY">May</option>
+        <option value="JUNE">June</option>
+        <option value="JULY">July</option>
+        <option value="AUGUST">August</option>
+        <option value="SEPTEMBER">September</option>
+        <option value="OCTOBER">October</option>
+        <option value="NOVEMBER">November</option>
+        <option value="DECEMBER">December</option>
+    </select>
+    <input type="submit" value="Change Month" >
+</form>
+
+<br><br><br>
+
+<div style="font: 10px sans-serif; color: steelblue;">
+    <table>
+        <tr>
+            <th>Year</th>
+            <th>Temperature</th>
+            <th>Temp. graph.</th>
+        </tr>
+        {#for temp in temperatureList}
+            <tr>
+            <td style="font: 10px sans-serif; text-align: left; color: steelblue;">
+                {temp.year}
+            </td>
+            <td style="font: 10px sans-serif; text-align: right; color: steelblue;">
+                {temp.temperature} °C
+            </td>
+            <td style="font: 10px sans-serif; text-align: left; color: white;">
+                {!<div style="background: steelblue; padding: 3px; margin: 1px; width: 40px;">4</div>!}
+                {#if temp.temperature > 0}
+                    <div style="background: steelblue; text-align: right; padding: 3px; margin: 1px; margin-left: {temp.getOriginY}px; width: {temp.width()}px;">{temp.temperature}</div>
+                    {#else}
+                        <div style="background: steelblue; text-align: left; padding: 3px; margin: 1px; margin-left: {temp.marginNegative(temp.temperature)}px; width: {temp.widthAbsolute()}px;">{temp.temperature}</div>
+                {/if}
+            </td>
+            </tr>
+            {!<p>{temp.month} - {temp.temperature}</p>!}
+        {/for}
+    </table>
+</div>
+<script>
+    console.log('{temperatureList.0.month}');
+    let elementMonth = document.getElementById('month');
+    elementMonth.value='{temperatureList.0.month}';
+</script>
+</body>
+</html>

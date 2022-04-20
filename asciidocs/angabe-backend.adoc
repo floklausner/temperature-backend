@@ -1,0 +1,409 @@
+= Prüfungsteil: Backend - Quarkus
+Thomas W. Stütz
+1.0.0, {docdate}: 5ahitm - NVS - Prüfung WS (Sem.1)
+ifndef::imagesdir[:imagesdir: images]
+//:toc-placement!:  // prevents the generation of the doc at this position, so it can be printed afterwards
+//:sourcedir: ../src/main/java
+:icons: font
+:sectnums:    // Nummerierung der Überschriften / section numbering
+:experimental:
+:toclevels: 4
+:toc: left
+
+
+== Hilfsmittel
+
+=== Erlaubte Hilfmittel
+
+* Stackoverflow
+* Dokumentationen von Libraries, Frameworks usw.
+//** zB https://www.objectdb.com/java/jpa/query/api
+* kurze Code Snippets mit Erläuterungen (cheat-sheet)
+//* im beiligenden README.md finden Sie noch Tips zur Konfiguration
+//* die zur Verfügung stehenden Unit-Tests
+//* Die scripts auf http://edufs.edu.htl-leonding.ac.at/~t.stuetz/download/nvs/scripts/
+
+=== Nicht erlaubte Hilfsmittel
+
+* die Hilfe anderer Personen
+* fertige Projekte (auf git-hostern oder auch lokal)
+** nicht erlaubt sind also github, bitbucket, gitlab usw.
+* Lange (vollständige) Programmcodes
+//* das "Internet"
+
+
+
+
+== Vorbereitende Arbeiten
+
+=== Überblick
+
+* Clonen Sie zuerst das Quarkus-Backend.
+//* Kopieren Sie die beigefügten Testklassen in das Projekt
+* Erstellen Sie die Entityklassen, jedoch noch ohne Persistierung für die DB
+//* Wenn alle Entity-Tests funktionieren bereiten Sie die Entity-Klassen zur Persistierung vor
+** Die Queries sind typisiert durchzuführen.
+** Sie verwenden Panáche verwenden:
+** Wählen Sie den Repository Ansatz.
+** Implementieren sie die Id selbst (entsprechend der Angabe)
+//* Die Repository-Tests sind Teil der Angabe
+* Implementieren Sie den Endpoint.
+* Implementieren sie die Qute-Webseite inkl. des dazugehörigen Java-Codes.
+
+IMPORTANT: Nach jeder (zu programmierenden) Aufgabe führen Sie ein Commit durch.
+
+=== Schritt 1: Lesen Sie die gesamte Angabe aufmerksam durch
+
+* Falls Ihnen etwas unklar ist, fragen Sie ...
+
+=== Schritt 2: Klonen des Repositories und erstellen eines Projekts
+
+* Erstellen Sie in diesem Repository ein Quarkus Projekt mit Java-Level 17
+
+|===
+|Key |Value
+
+|Project Group Id
+|at.htl.temperature
+
+|Project Artifact
+|<your-surname> zB `huber`
+
+|===
+
+* wählen Sie die notwendigen Extensions
+** resteasy
+** resteasy-jackson
+** jackson
+//** hibernate-validator
+** resteasy-qute
+** hibernate-orm-panache
+** jdbc-derby
+** smallrye-openapi
+
+//* Fügen Sie schließlich der pom.xml folgende Abhängigkeiten hinzu:
+//
+//[source,xml]
+//----
+//<!-- ... -->
+//<dependencies>
+//  <!-- ... -->
+//  <dependency>
+//    <groupId>org.assertj</groupId>
+//    <artifactId>assertj-core</artifactId>
+//    <version>3.22.0</version>
+//    <scope>test</scope>
+//  </dependency>
+//  <dependency>
+//    <groupId>org.assertj</groupId>
+//    <artifactId>assertj-db</artifactId>
+//    <version>2.0.2</version>
+//    <scope>test</scope>
+//  </dependency>
+//  <dependency>
+//    <groupId>org.webjars.bower</groupId>
+//    <artifactId>milligram</artifactId>
+//    <version>1.3.0</version>
+//  </dependency>
+//</dependencies>
+//<!-- ... -->
+//----
+
+// mit Karate-Einträgen
+//[source,xml]
+//----
+//<!-- ... -->
+//<dependencies>
+//  <!-- ... -->
+//  <dependency>
+//    <groupId>org.assertj</groupId>
+//    <artifactId>assertj-core</artifactId>
+//    <version>3.21.0</version>
+//    <scope>test</scope>
+//  </dependency>
+//  <dependency>
+//    <groupId>org.assertj</groupId>
+//    <artifactId>assertj-db</artifactId>
+//    <version>2.0.2</version>
+//    <scope>test</scope>
+//  </dependency>
+//  <dependency>
+//    <groupId>com.intuit.karate</groupId>
+//    <artifactId>karate-junit5</artifactId>
+//    <version>1.1.0</version>
+//    <scope>test</scope>
+//
+//  </dependency>
+//  <dependency>
+//    <groupId>org.graalvm.sdk</groupId>
+//    <artifactId>graal-sdk</artifactId>
+//    <version>21.2.0</version>
+//  </dependency>
+//</dependencies>
+//<build>
+//  <testResources>
+//    <testResource>
+//      <directory>src/test/java</directory>
+//      <excludes>
+//        <exclude>**/*.java</exclude>
+//      </excludes>
+//    </testResource>
+//  </testResources>
+//  <plugins>
+//  <!-- ... -->
+//----
+
+* Fügen sie schließlich dem .gitignore folgende Zeilen hinzu:
+
+----
+*.jar
+/db/
+----
+
+
+
+=== Schritt 3: Initialisieren der Datenbank
+
+==== Download der derbydb und des jdk17 (temurin)
+
+Verwenden Sie diesen http://edufs.edu.htl-leonding.ac.at/~t.stuetz/download/nvs/scripts/download-derbydb-and-jdk.sh[Link], um das Script `download-derbydb-and-jdk.sh` downzuladen. Beim Ausführen werden alle notwendigen Dateien in das aktuelle Verzeichnis geladen:
+
+.Starten Sie folgende Scripts
+|===
+|Script |starten mit
+
+|`download-derbydb-and-jdk.sh`
+a|`chmod +x ./download-derbydb-and-jdk.sh`
+`./download-derbydb-and-jdk.sh java`
+
+|`create-db.sh`
+|`./create-db.sh`
+
+|`start-derby.sh`
+|`./start-derby.sh`
+
+|`install-local-jdk-17.sh`
+|`./install-local-jdk-17.sh`
+
+|`set-local-env.sh` in jedem Terminal-Fenster
+|`source set-local-env.sh`
+
+|===
+
+.Ergebnis nach Durchführen der Scripts
+image::db-folder.png[]
+
+
+
+
+
+
+== Ausgangssituation
+
+* Es steht Ihnen eine csv-Datei mit den durchschnittlichen Temperaturwerten in Zehntelgraden (0,1°C) pro Monat für die Jahre 1760 bis 2024 zur Verfügung.
+
+image::csv-header.png[]
+image::csv-data.png[]
+
+* Ausser den durchschnittlichen Monatstemperaturen sind noch angegeben:
+** die durchschnittlichen Quartalstemperaturen
+** die durchschnittlichen Halbjahrestemperaturen
+** die durchschnittlichen Jahrestemperaturen
+** *Diese Werte brauchen Sie jedoch nicht und können sie daher ignorieren.*
+
+
+* Für die Monate in denen keine Werte vorhanden sind, ist der Wert `999999` eingetragen.
+** Diese Werte sind ebenso zu ignorieren, also nicht zu berücksichtigen.
+
+* Weiters ist der Header zu ignorieren, nur die Station (Linz-Stadt) ist auszulesen und in die Tabelle einzutragen.
+
+IMPORTANT: Beachten Sie, dass die Temperaturen in Zehntelgraden eingetragen sind (0,1°C)
+
+
+== Aufgabenstellung
+
+
+
+
+//[IMPORTANT]
+//.Beachten Sie
+//====
+//* Das Root-Element "Products" entspricht keinem Datenbank-Objekt und dient nur zur grafischen Darstellung
+//* Die Step-Elemente werden *nicht* dargestellt, sondern nur die Stationen, zB A, B, C, ...
+//* Das Icon icon:wrench[] wird mit `<&wrench>` erstellt
+//====
+
+
+
+=== Aufgabe 1: Erstellen Sie die Entitätsklasse
+
+* Erstellen Sie zunächst die Entitätsklasse
+
+.Klassendiagramm
+[plantuml,cld-soll,png]
+----
+@startuml
+include::plantuml/cld-soll.puml[]
+@enduml
+----
+
+
+//.Klassendiagramm
+//image::cld-ist.png[width=300]
+
+* Beim Konstruktor werden Zehntelgrade übergeben, in der Entität jedoch Grad Celsius gespeichert.
+
+IMPORTANT: Beachten Sie, dass beim Attribut `month` der Datentyp `java.time.Month` ist.
+
+.ERD
+image::erd-ist.png[]
+
+* Hinzu kommen noch getter and setter
+* sowie die toString() - Methoden
+//* Als Datumsformat wählen Sie ISO_DATE (yyyy-mm-dd)
+
+
+
+//WARNING: Beachten Sie die zur Verfügung stehenden Tests, die ebenfalls Teil der Angabe sind.
+
+//* Achten Sie darauf, dass die Entity-Tests funktionieren.
+
+
+
+=== Aufgabe 2: Erstellen der Repositories
+
+* Sämtliche Zugriffe auf die Datenbank erfolgen über die Repositories.
+* Erstellen Sie eine Klasse `InitBean.java`, um die DB zu initialisieren, indem die Daten aus der csv-Datei eingelesen werden
+
+[source,java]
+----
+@ApplicationScoped
+public class InitBean {
+
+    @Inject
+    TemperatureRepository temperatureRepository;
+
+    void init(@Observes StartupEvent event) {
+        temperatureRepository.readTemperatureFile("temperatures.csv");
+    }
+}
+----
+
+* Erstellen Sie eine Methode `readTemperatureFile`, um das csv-File einzulesen:
+** Dabei wird die Tabelle transponiert (Spalten zu Zeilen).
+
+image::table-content.png[]
+
+
+* Löschen Sie die nicht benötigten (von Quarkus erstellten) Tests und Klassen
+//* Verwenden Sie die beigelegten Repository-Tests, um sicherzustellen, dass Ihre Implementierung funktioniert
+
+=== Aufgabe 3: Erstellen der Endpoints
+
+* Erstellen Sie eine Klassen `TemperatureResource` in der *typisiert* auf das Template `TemperatureResource/temperature.html` zugegriffen wird.
+//* Verwenden Sie hierzu den Requests in `http-requests/requests.http`
+
+//** Verwenden Sie milligramm, um die site zu "behübschen":
+//+
+//[source,xml]
+//----
+//<head>
+//    <meta charset="UTF-8">
+//    <link rel="stylesheet" href="webjars/milligram/1.3.0/dist/milligram.min.css"/>
+//    <title>Booking</title>
+//</head>
+//----
+
+* Geben Sie unter dem Url `http://localhost:8080/temperature` eine Tabelle mit den Temperaturdaten aus.
+
+* Erstellen Sie eine Klasse `TemperatureApi`, die unter dem Url `http://localhost:8080/api/temperature` die Temperaturdaten für das entsprechende Monat liefert.
+
+image::rest-swagger.png[]
+
+.Hier finden Sie eine genaue Beschreibung der Endpoints (ausklappbar)
+[%collapsible]
+====
+----
+openapi: 3.0.3
+info:
+  title: temperature API
+  version: 1.0.0-SNAPSHOT
+paths:
+  /api/temperature:
+    get:
+      tags:
+      - Temperature Api
+      responses:
+        "200":
+          description: OK
+    post:
+      tags:
+      - Temperature Api
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                month:
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            text/html:
+              schema:
+                $ref: '#/components/schemas/TemplateInstance'
+  /temperature:
+    get:
+      tags:
+      - Temperature Resource
+      responses:
+        "200":
+          description: OK
+          content:
+            text/html:
+              schema:
+                $ref: '#/components/schemas/TemplateInstance'
+components:
+  schemas:
+    TemplateInstance:
+      type: object
+----
+====
+
+TIP: Verwenden Sie den Faktor 30, um die Temperatur als Balken darzustellen.
+
+* Durch Auswahl des Monats und Anklicken des Buttons kbd:[Change Month] wird auf die Startseite umgeleitet.
+
+image::website-january.png[]
+image::website-february.png[]
+
+=== gerenderter HTML-Code
+
+image::html-table-top.png[]
+image::html-table.png[]
+...
+
+image::html-table-bottom.png[]
+
+
+Nicht vergessen - beim Programmieren kleine Schritte machen (*das Programm soll immer lauffähig sein*)
+
+=== Links
+
+* https://quarkus.io/guides/qute-reference
+//* https://www.baeldung.com/jackson-annotations
+//* https://phauer.com/2019/modern-best-practices-testing-java/
+//* https://www.morling.dev/blog/quarkus-qute-test-ride/
+* https://www.w3schools.com/html/html_forms.asp
+
+image:small-steps.jpg[width=300]
+
+----
+ __   ___     _   ___      __     _      _
+ \ \ / (_)___| | | __|_ _ / _|___| |__ _| |
+  \ V /| / -_) | | _|| '_|  _/ _ \ / _` |_|
+   \_/ |_\___|_| |___|_| |_| \___/_\__, (_)
+                                   |___/
+----

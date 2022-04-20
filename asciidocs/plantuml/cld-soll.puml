@@ -1,0 +1,12 @@
+@startuml
+class Temperature {
+ - yyyymm: int
+ - year: int
+ - month: Month
+ - temperature: double
+ - location: String
+ + Temperature()
+ + Temperature(int yyyy, int mm, int temperature, String location)
+}
+
+@enduml
